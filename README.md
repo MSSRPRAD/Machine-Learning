@@ -9,8 +9,10 @@ Made from scratch using numpy and pandas libraries
 
 Feature Engineering:
 
-1) Replace empty values with 1) mode of column if characteristic data 2) mean of column if numeric data
-2) Normalize the data with (x-mean(x))/std(x)
+1) Replace NAN values with:
+   1) mode of column if characteristic data
+   2) mean of column if numeric data
+3) Normalize the data with (x-mean(x))/std(x)
 
 Perceptron:
 
