@@ -10,67 +10,72 @@ Original file is located at
 import pandas as pd
 import numpy as np
 
+
 class Perceptron:
-    
+
     def __init__(self):
-      self.weight=None
+        self.weight = None
     # Find the classification for the feature vector
     # Found according to the current weight vector
 
     def weight(self):
-      return self.weight
+        return self.weight
     # Train the weight vector according to the feature vectors and their
     # corresponding classification
+
     def fit(self, X, y):
-      # Add a bias column of all 1s
-      X["bias"] = 1
-      self.weight = np.zeros(X.shape[1])
-      misclassifications = 0
-      count = 0
-      while True:
-        count += 1
+        # Add a bias column of all 1s
+        X["bias"] = 1
+        self.weight = np.zeros(X.shape[1])
         misclassifications = 0
-        for i in range(X.shape[0]):
-          X_i = X.iloc[i, :]
-          Y_i = y.iloc[i]
-          if Y_i*np.dot(self.weight, X_i) <= 0 :
-            self.weight = self.weight + X_i*Y_i
-            misclassifications += 1
-        if count%5 == 0:
-          print(self.weight)
-          print("Misclassified:\t"+
-                str(misclassifications) + "\tCount:\t"+ str(count))
-        # Break while loop when all data is classified correctly
-        if misclassifications == 0:
-          break
-      return
+        count = 0
+        while True:
+            count += 1
+            misclassifications = 0
+            for i in range(X.shape[0]):
+                X_i = X.iloc[i, :]
+                Y_i = y.iloc[i]
+                if Y_i*np.dot(self.weight, X_i) <= 0:
+                    self.weight = self.weight + X_i*Y_i
+                    misclassifications += 1
+            if count % 5 == 0:
+                print(self.weight)
+                print("Misclassified:\t" +
+                      str(misclassifications) + "\tCount:\t" + str(count))
+            # Break while loop when all data is classified correctly
+            if misclassifications == 0:
+                break
+        return
     # Return a row containing classification for each row in X
     # Found according to our weight vector
-    def predict(self, X):
-      prediction = []
-      # Add a bias column of all 1s
-      X["bias"] = 1
-      for i in range(X.shape[0]):
-        X_i = X.iloc[i, :]
-        if np.dot(self.weight, X_i) > 0:
-          prediction.append(1)
-        else:
-          prediction.append(-1)
-      return prediction
 
-df = pd.read_csv("data.csv")
+    def predict(self, X):
+        prediction = []
+        # Add a bias column of all 1s
+        X["bias"] = 1
+        for i in range(X.shape[0]):
+            X_i = X.iloc[i, :]
+            if np.dot(self.weight, X_i) > 0:
+                prediction.append(1)
+            else:
+                prediction.append(-1)
+        return prediction
+
+
+df = pd.read_csv("feature_engineering_2.csv")
 df = df.dropna()
-tr = df.iloc[:375,:]
+tr = df.iloc[:375, :]
 test = df.iloc[375:, :]
 y = tr.iloc[:, 1]
+y_test = test.iloc[:, 1]
 
 y
 
-tr = tr.drop(tr.columns[[0,1]], axis=1)
-test = test.drop(test.columns[[0,1]], axis=1)
+tr = tr.drop(tr.columns[[0, 1]], axis=1)
+test = test.drop(test.columns[[0, 1]], axis=1)
 
-y.replace('M', 1, inplace = True)
-y.replace('B', -1, inplace = True)
+y.replace('M', 1, inplace=True)
+y.replace('B', -1, inplace=True)
 
 y
 
@@ -81,3 +86,21 @@ tr
 model = Perceptron()
 model.fit(tr, y)
 predicted = model.predict(test)
+
+count = 0
+for i in range(len(predicted)):
+    if predicted[i] != y_test.iloc[i]:
+        count += 1
+
+print(predicted)
+print(y_test)
+print(count)
+
+count = 0
+for i in range(len(predicted)):
+    if predicted[i] == y_test.iloc[i]:
+        count += 1
+
+print(predicted)
+print(y_test)
+print(count)
