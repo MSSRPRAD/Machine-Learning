@@ -19,3 +19,9 @@ Perceptron:
 Made a perceptron class that finds the weights and has fit() and predict() functions
 
 Note: Not sure if the Perceptron class works perfectly yet. 
+
+Logistic Regression:
+
+Made a Logistic_Regression class that has fit() and predict() function exactly the same as the Perceptron class. 
+
+Note: Not sure if this is perfect either haha :)
