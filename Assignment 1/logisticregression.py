@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 
-class Logistic_Regression:
+class Logistic_Regression_batch:
     def __init__(self, lr, iter):
         self.lr = lr
         self.iter = iter
@@ -30,13 +30,15 @@ class Logistic_Regression:
 
     def gradient(self, X, Y):
         grad_E = np.zeros(X.shape[1])
+        cnt = 0
         for n in range(X.shape[0]):
             t_n = Y[n]
             X_n = X.iloc[n, :]
             y_n = self.sigmoid(X_n)
             # Gradient of Error function
             grad_E += (y_n-t_n)*X_n
-        return grad_E
+            cnt += 1
+        return grad_E/cnt
 
     def fit(self, X, Y):
         # Add a bias column of all 1s
@@ -47,6 +49,126 @@ class Logistic_Regression:
         for i in range(self.iter):
             # Update the weight based on the gradient with the current weight vector
             self.weight -= self.lr*self.gradient(X, Y)
+            # Count misclassifications
+            misclassifications = 0
+            # Print the misclassifications
+            if i % 2 == 0:
+                for j in range(X.shape[0]):
+                    X_j = X.iloc[j, :]
+                    Y_j = Y.iloc[j]
+                    if self.classify(self.sigmoid(X_j)) != Y_j:
+                        misclassifications += 1
+                print(self.weight)
+                print("misclassifications:")
+                print(misclassifications)
+                print("epochs:")
+                print(i)
+        return
+
+    def predict(self, X):
+        X["bias"] = 1
+        prediction = []
+        for i in range(X.shape[0]):
+            X_i = X.iloc[i, :]
+            prediction.append(self.classify(self.sigmoid(X_i)))
+        return prediction
+
+
+class Logistic_Regression_stochastic:
+    def __init__(self, lr, iter):
+        self.lr = lr
+        self.iter = iter
+        self.weight = None
+        return
+
+    def sigmoid(self, X):
+        a = 1./(1.+np.exp(-1*np.dot(X, self.weight)))
+        return a
+
+    def classify(self, prob):
+        if prob >= 0.5:
+            return 1
+        else:
+            return -1
+
+    def fit(self, X, Y):
+        # Add a bias column of all 1s
+        X["bias"] = 1
+        # Initialize the weights to 0
+        self.weight = np.ones(X.shape[1])
+        # Run the gradient descent algorithm
+        for i in range(self.iter):
+            # Update the weight based on the gradient with the current weight vector
+            for n in range(X.shape[0]):
+                grad_E = np.zeros(X.shape[1])
+                t_n = Y[n]
+                X_n = X.iloc[n, :]
+                y_n = self.sigmoid(X_n)
+                # Gradient of Error function
+                grad_E += (y_n-t_n)*X_n
+                self.weight -= self.lr*grad_E
+            # Count misclassifications
+            misclassifications = 0
+            # Print the misclassifications
+            if i % 2 == 0:
+                for j in range(X.shape[0]):
+                    X_j = X.iloc[j, :]
+                    Y_j = Y.iloc[j]
+                    if self.classify(self.sigmoid(X_j)) != Y_j:
+                        misclassifications += 1
+                print(self.weight)
+                print("misclassifications:")
+                print(misclassifications)
+                print("epochs:")
+                print(i)
+        return
+
+    def predict(self, X):
+        X["bias"] = 1
+        prediction = []
+        for i in range(X.shape[0]):
+            X_i = X.iloc[i, :]
+            prediction.append(self.classify(self.sigmoid(X_i)))
+        return prediction
+
+
+class Logistic_Regression_mini_batch:
+    def __init__(self, lr, iter):
+        self.lr = lr
+        self.iter = iter
+        self.weight = None
+        return
+
+    def sigmoid(self, X):
+        a = 1./(1.+np.exp(-1*np.dot(X, self.weight)))
+        return a
+
+    def classify(self, prob):
+        if prob >= 0.5:
+            return 1
+        else:
+            return -1
+
+    def fit(self, X, Y):
+        # Add a bias column of all 1s
+        X["bias"] = 1
+        # Initialize the weights to 0
+        self.weight = np.ones(X.shape[1])
+        # Run the gradient descent algorithm
+        for i in range(self.iter):
+            # Update the weight based on the gradient with the current weight vector
+            grad_E = np.zeros(X.shape[1])
+            for n in range(X.shape[0]):
+                t_n = Y[n]
+                X_n = X.iloc[n, :]
+                y_n = self.sigmoid(X_n)
+                # Gradient of Error function
+                grad_E += (y_n-t_n)*X_n
+                if n % 20 == 0:  # Batch strength is 20
+                    self.weight -= self.lr*grad_E
+                    grad_E = grad_E = np.zeros(X.shape[1])
+                elif n == X.shape[0]-1:
+                    self.weight -= self.lr*grad_E
             # Count misclassifications
             misclassifications = 0
             # Print the misclassifications
@@ -89,16 +211,22 @@ test
 
 tr
 
-model = Logistic_Regression(0.001, 100)
+model = Logistic_Regression_stochastic(0.01, 100)
 model.fit(tr, y)
 predicted = model.predict(test)
+
+y_test.replace('M', 1, inplace=True)
+y_test.replace('B', -1, inplace=True)
 
 
 count = 0
 for i in range(len(predicted)):
-    if predicted[i] == y_test.iloc[i]:
+    print(str(predicted[i])+'-'+str(y_test.iloc[i]))
+    if predicted[i] != y_test.iloc[i]:
         count += 1
 
+print("PREDICTED DATA")
 print(predicted)
+print("ACTUAL DATA")
 print(y_test)
 print(count)
