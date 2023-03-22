@@ -7,8 +7,11 @@ Original file is located at
     https://colab.research.google.com/drive/1GEh79Sj_T-uq6E8XvHCFykxaSwLycfFU
 """
 
+import sys
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import math
 
 
 class Logistic_Regression_batch:
@@ -16,6 +19,7 @@ class Logistic_Regression_batch:
         self.lr = lr
         self.iter = iter
         self.weight = None
+        self.history = None
         return
 
     def sigmoid(self, X):
@@ -26,7 +30,7 @@ class Logistic_Regression_batch:
         if prob >= 0.5:
             return 1
         else:
-            return -1
+            return 0
 
     def gradient(self, X, Y):
         grad_E = np.zeros(X.shape[1])
@@ -40,11 +44,28 @@ class Logistic_Regression_batch:
             cnt += 1
         return grad_E/cnt
 
+    def cost(self, X, Y):
+        cst = 0.
+        for n in range(X.shape[0]):
+            t_n = Y[n]
+            X_n = X.iloc[n, :]
+            y_n = self.sigmoid(X_n)
+            if t_n == 1:
+                t_n -= 0.000000000001
+            if y_n == 1:
+                y_n -= 0.000000000001
+            # Gradient of Error function
+            cst += t_n*math.log(y_n)+(1-t_n)*math.log(1-y_n)
+            print("Cost: "+str(cst))
+        cst *= -1.
+        return cst
+
     def fit(self, X, Y):
         # Add a bias column of all 1s
         X["bias"] = 1
         # Initialize the weights to 0
         self.weight = np.ones(X.shape[1])
+        self.history = []
         # Run the gradient descent algorithm
         for i in range(self.iter):
             # Update the weight based on the gradient with the current weight vector
@@ -52,12 +73,13 @@ class Logistic_Regression_batch:
             # Count misclassifications
             misclassifications = 0
             # Print the misclassifications
-            if i % 2 == 0:
+            if i % 10 == 0 or i < 10:
                 for j in range(X.shape[0]):
                     X_j = X.iloc[j, :]
                     Y_j = Y.iloc[j]
                     if self.classify(self.sigmoid(X_j)) != Y_j:
                         misclassifications += 1
+                self.history.append((i, self.cost(X, Y)))
                 print(self.weight)
                 print("misclassifications:")
                 print(misclassifications)
@@ -79,6 +101,7 @@ class Logistic_Regression_stochastic:
         self.lr = lr
         self.iter = iter
         self.weight = None
+        self.history = None
         return
 
     def sigmoid(self, X):
@@ -89,13 +112,14 @@ class Logistic_Regression_stochastic:
         if prob >= 0.5:
             return 1
         else:
-            return -1
+            return 0
 
     def fit(self, X, Y):
         # Add a bias column of all 1s
         X["bias"] = 1
         # Initialize the weights to 0
         self.weight = np.ones(X.shape[1])
+        self.history = []
         # Run the gradient descent algorithm
         for i in range(self.iter):
             # Update the weight based on the gradient with the current weight vector
@@ -110,12 +134,13 @@ class Logistic_Regression_stochastic:
             # Count misclassifications
             misclassifications = 0
             # Print the misclassifications
-            if i % 2 == 0:
+            if i % 10 == 0 or i < 10:
                 for j in range(X.shape[0]):
                     X_j = X.iloc[j, :]
                     Y_j = Y.iloc[j]
                     if self.classify(self.sigmoid(X_j)) != Y_j:
                         misclassifications += 1
+                self.history.append((i, self.cost(X, Y)))
                 print(self.weight)
                 print("misclassifications:")
                 print(misclassifications)
@@ -131,12 +156,29 @@ class Logistic_Regression_stochastic:
             prediction.append(self.classify(self.sigmoid(X_i)))
         return prediction
 
+    def cost(self, X, Y):
+        cst = 0.
+        for n in range(X.shape[0]):
+            t_n = Y[n]
+            X_n = X.iloc[n, :]
+            y_n = self.sigmoid(X_n)
+            if t_n == 1:
+                t_n -= 0.000000000001
+            if y_n == 1:
+                y_n -= 0.000000000001
+            # Gradient of Error function
+            cst += t_n*math.log(y_n)+(1-t_n)*math.log(1-y_n)
+            print("Cost: "+str(cst))
+        cst *= -1.
+        return cst
+
 
 class Logistic_Regression_mini_batch:
     def __init__(self, lr, iter):
         self.lr = lr
         self.iter = iter
         self.weight = None
+        self.history = None
         return
 
     def sigmoid(self, X):
@@ -147,13 +189,14 @@ class Logistic_Regression_mini_batch:
         if prob >= 0.5:
             return 1
         else:
-            return -1
+            return 0
 
     def fit(self, X, Y):
         # Add a bias column of all 1s
         X["bias"] = 1
         # Initialize the weights to 0
         self.weight = np.ones(X.shape[1])
+        self.history = []
         # Run the gradient descent algorithm
         for i in range(self.iter):
             # Update the weight based on the gradient with the current weight vector
@@ -172,12 +215,13 @@ class Logistic_Regression_mini_batch:
             # Count misclassifications
             misclassifications = 0
             # Print the misclassifications
-            if i % 2 == 0:
+            if i % 10 == 0 or i < 10:
                 for j in range(X.shape[0]):
                     X_j = X.iloc[j, :]
                     Y_j = Y.iloc[j]
                     if self.classify(self.sigmoid(X_j)) != Y_j:
                         misclassifications += 1
+                self.history.append((i, self.cost(X, Y)))
                 print(self.weight)
                 print("misclassifications:")
                 print(misclassifications)
@@ -193,6 +237,22 @@ class Logistic_Regression_mini_batch:
             prediction.append(self.classify(self.sigmoid(X_i)))
         return prediction
 
+    def cost(self, X, Y):
+        cst = 0.
+        for n in range(X.shape[0]):
+            t_n = Y[n]
+            X_n = X.iloc[n, :]
+            y_n = self.sigmoid(X_n)
+            if t_n == 1:
+                t_n -= 0.000000000001
+            if y_n == 1:
+                y_n -= 0.000000000001
+            # Gradient of Error function
+            cst += t_n*math.log(y_n)+(1-t_n)*math.log(1-y_n)
+            print("Cost: "+str(cst))
+        cst *= -1.
+        return cst
+
 
 df = pd.read_csv("feature_engineering_2.csv")
 df = df.dropna()
@@ -204,29 +264,132 @@ y_test = test.iloc[:, 1]
 tr = tr.drop(tr.columns[[0, 1]], axis=1)
 test = test.drop(test.columns[[0, 1]], axis=1)
 y.replace('M', 1, inplace=True)
-y.replace('B', -1, inplace=True)
+y.replace('B', 0, inplace=True)
 y
 
 test
 
 tr
 
-model = Logistic_Regression_stochastic(0.01, 100)
-model.fit(tr, y)
-predicted = model.predict(test)
+# model = None
+arguments = sys.argv
+lr = float(arguments[1])
+epochs = int(arguments[2])
+type = arguments[3]
 
 y_test.replace('M', 1, inplace=True)
-y_test.replace('B', -1, inplace=True)
+y_test.replace('B', 0, inplace=True)
 
+print("TESTING COMMAND LINE ARGS")
+print(lr)
+print(epochs)
+print(type)
+if type == "batch":
+    model = Logistic_Regression_batch(lr, epochs)
+    model.fit(tr, y)
+    predicted = model.predict(test)
 
-count = 0
-for i in range(len(predicted)):
-    print(str(predicted[i])+'-'+str(y_test.iloc[i]))
-    if predicted[i] != y_test.iloc[i]:
-        count += 1
+    count = 0
+    for i in range(len(predicted)):
+        print(str(predicted[i])+'-'+str(y_test.iloc[i]))
+        if predicted[i] != y_test.iloc[i]:
+            count += 1
 
-print("PREDICTED DATA")
-print(predicted)
-print("ACTUAL DATA")
-print(y_test)
-print(count)
+    print("PREDICTED DATA")
+    print(predicted)
+    print("TEST DATA")
+    print(y_test)
+    print("NO OF MISCLASSIFICATIONS ON TEST DATA")
+    print(count)
+
+    print("PLOTTING DATA")
+    points = model.history
+
+    # extract x and y values from each tuple
+    x = [p[0] for p in points]
+    y = [p[1] for p in points]
+
+    # plot the points
+    plt.plot(x, y, 'ro')
+
+    # add axis labels and a title
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Plot of Points')
+
+    # display the plot
+    plt.show()
+elif type == "mini-batch":
+    model = Logistic_Regression_mini_batch(lr, epochs)
+    model.fit(tr, y)
+    predicted = model.predict(test)
+
+    count = 0
+    for i in range(len(predicted)):
+        print(str(predicted[i])+'-'+str(y_test.iloc[i]))
+        if predicted[i] != y_test.iloc[i]:
+            count += 1
+
+    print("PREDICTED DATA")
+    print(predicted)
+    print("TEST DATA")
+    print(y_test)
+    print("NO OF MISCLASSIFICATIONS ON TEST DATA")
+    print(count)
+
+    print("PLOTTING DATA")
+    points = model.history
+
+    # extract x and y values from each tuple
+    x = [p[0] for p in points]
+    y = [p[1] for p in points]
+
+    # plot the points
+    plt.plot(x, y, 'ro')
+
+    # add axis labels and a title
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Plot of Points')
+
+    # display the plot
+    plt.show()
+elif type == "stochastic":
+    model = Logistic_Regression_stochastic(lr, epochs)
+    model.fit(tr, y)
+    predicted = model.predict(test)
+
+    count = 0
+    for i in range(len(predicted)):
+        print(str(predicted[i])+'-'+str(y_test.iloc[i]))
+        if predicted[i] != y_test.iloc[i]:
+            count += 1
+
+    print("PREDICTED DATA")
+    print(predicted)
+    print("TEST DATA")
+    print(y_test)
+    print("NO OF MISCLASSIFICATIONS ON TEST DATA")
+    print(count)
+    print("MODEL:")
+    print(type)
+    print("COSTS:")
+    print(model.history)
+
+    print("PLOTTING DATA")
+    points = model.history
+
+    # extract x and y values from each tuple
+    x = [p[0] for p in points]
+    y = [p[1] for p in points]
+
+    # plot the points
+    plt.plot(x, y, 'ro')
+
+    # add axis labels and a title
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Plot of Points')
+
+    # display the plot
+    plt.show()

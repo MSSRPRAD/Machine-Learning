@@ -87,20 +87,19 @@ model = Perceptron()
 model.fit(tr, y)
 predicted = model.predict(test)
 
+y_test.replace('M', 1, inplace=True)
+y_test.replace('B', -1, inplace=True)
+
+
 count = 0
 for i in range(len(predicted)):
+    print(str(predicted[i])+'-'+str(y_test.iloc[i]))
     if predicted[i] != y_test.iloc[i]:
         count += 1
 
+print("PREDICTED DATA")
 print(predicted)
+print("TEST DATA")
 print(y_test)
-print(count)
-
-count = 0
-for i in range(len(predicted)):
-    if predicted[i] == y_test.iloc[i]:
-        count += 1
-
-print(predicted)
-print(y_test)
+print("NO OF MISCLASSIFICATIONS ON TEST DATA")
 print(count)
