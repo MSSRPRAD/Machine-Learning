@@ -11,7 +11,8 @@ import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+from scipy import stats
+from scipy.special import expit
 
 
 class Logistic_Regression_batch:
@@ -23,7 +24,7 @@ class Logistic_Regression_batch:
         return
 
     def sigmoid(self, X):
-        a = 1./(1.+np.exp(-1*np.dot(X, self.weight)))
+        a = expit(np.dot(X, self.weight))
         return a
 
     def classify(self, prob):
@@ -51,11 +52,11 @@ class Logistic_Regression_batch:
             X_n = X.iloc[n, :]
             y_n = self.sigmoid(X_n)
             if t_n == 1:
-                t_n -= 0.000000000001
+                t_n -= 0.000001
             if y_n == 1:
-                y_n -= 0.000000000001
+                y_n -= 0.000001
             # Gradient of Error function
-            cst += t_n*math.log(y_n)+(1-t_n)*math.log(1-y_n)
+            cst += t_n*np.log(y_n)+(1-t_n)*np.log(1-y_n)
             print("Cost: "+str(cst))
         cst *= -1.
         return cst
@@ -105,7 +106,7 @@ class Logistic_Regression_stochastic:
         return
 
     def sigmoid(self, X):
-        a = 1./(1.+np.exp(-1*np.dot(X, self.weight)))
+        a = expit(np.dot(X, self.weight))
         return a
 
     def classify(self, prob):
@@ -163,11 +164,11 @@ class Logistic_Regression_stochastic:
             X_n = X.iloc[n, :]
             y_n = self.sigmoid(X_n)
             if t_n == 1:
-                t_n -= 0.000000000001
+                t_n -= 0.000001
             if y_n == 1:
-                y_n -= 0.000000000001
+                y_n -= 0.000001
             # Gradient of Error function
-            cst += t_n*math.log(y_n)+(1-t_n)*math.log(1-y_n)
+            cst += t_n*np.log(y_n)+(1-t_n)*np.log(1-y_n)
             print("Cost: "+str(cst))
         cst *= -1.
         return cst
@@ -182,7 +183,7 @@ class Logistic_Regression_mini_batch:
         return
 
     def sigmoid(self, X):
-        a = 1./(1.+np.exp(-1*np.dot(X, self.weight)))
+        a = expit(np.dot(X, self.weight))
         return a
 
     def classify(self, prob):
@@ -244,18 +245,39 @@ class Logistic_Regression_mini_batch:
             X_n = X.iloc[n, :]
             y_n = self.sigmoid(X_n)
             if t_n == 1:
-                t_n -= 0.000000000001
+                t_n -= 0.000001
             if y_n == 1:
-                y_n -= 0.000000000001
+                y_n -= 0.000001
             # Gradient of Error function
-            cst += t_n*math.log(y_n)+(1-t_n)*math.log(1-y_n)
+            cst += t_n*np.log(y_n)+(1-t_n)*np.log(1-y_n)
             print("Cost: "+str(cst))
         cst *= -1.
         return cst
 
 
 df = pd.read_csv("feature_engineering_2.csv")
+# df = pd.read_csv("data.csv")
 df = df.dropna()
+
+arguments = sys.argv
+
+if (arguments[4] == "rm-corr"):
+    # Create correlation matrix
+    corr_matrix = df.corr().abs()
+
+    # Select upper triangle of correlation matrix
+    upper = corr_matrix.where(
+        np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+
+    # Find features with correlation greater than 0.95
+    to_drop = [column for column in upper.columns if any(upper[column] > 0.95)]
+
+    # Drop features
+    df.drop(to_drop, axis=1, inplace=True)
+
+if (arguments[5] == "rm-outliers"):
+    pass
+
 tr = df.iloc[:375, :]
 test = df.iloc[375:, :]
 y = tr.iloc[:, 1]
@@ -271,8 +293,7 @@ test
 
 tr
 
-# model = None
-arguments = sys.argv
+
 lr = float(arguments[1])
 epochs = int(arguments[2])
 type = arguments[3]
@@ -313,9 +334,9 @@ if type == "batch":
     plt.plot(x, y, 'ro')
 
     # add axis labels and a title
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('Plot of Points')
+    plt.xlabel('epochs')
+    plt.ylabel('cost')
+    plt.title(type)
 
     # display the plot
     plt.show()
@@ -348,9 +369,9 @@ elif type == "mini-batch":
     plt.plot(x, y, 'ro')
 
     # add axis labels and a title
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('Plot of Points')
+    plt.xlabel('epochs')
+    plt.ylabel('cost')
+    plt.title(type)
 
     # display the plot
     plt.show()
@@ -387,9 +408,9 @@ elif type == "stochastic":
     plt.plot(x, y, 'ro')
 
     # add axis labels and a title
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('Plot of Points')
+    plt.xlabel('epochs')
+    plt.ylabel('cost')
+    plt.title(type)
 
     # display the plot
     plt.show()
